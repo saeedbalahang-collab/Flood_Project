@@ -1,3 +1,4 @@
+
 # ============================================================
 # Script 03 of 07 - Model evaluation on the test set
 # (comprehensive evaluation, feature importance, calibration,
@@ -93,6 +94,26 @@ for root, dirs, files in os.walk(model_dir):
         name = rename_models.get(name, name)
 
         models[name] = joblib.load(os.path.join(root, f))
+
+print("-"*60)
+print(f"Loaded {len(models)} model(s):")
+for m in sorted(models.keys()):
+    print(" -", m)
+
+expected_base_names = [
+    "Logistic_Regression", "Random_Forest", "Gradient_Boosting",
+    "XGBoost_Model", "CatBoost_Model",
+    "Optimized_XGBoost_model", "Optimized_Catboost_model",
+]
+missing = [m for m in expected_base_names if m not in models]
+if missing:
+    print("[WARN] The following expected models were NOT loaded "
+          "(scroll up for a [WARN]/download error message, and make "
+          "sure the file exists under this exact name in your GitHub "
+          "repository - see ALL_TRAINED_MODELS in utils_github_loader.py):")
+    for m in missing:
+        print("   -", m)
+print("-"*60)
 
 
 # ------------------------------------------------
@@ -315,7 +336,7 @@ feature_metadata = pd.DataFrame({
 
 
 feature_metadata.to_csv(
-    output_folder+"/Final_Feature_List.csv",
+    output_dir+"/Final_Feature_List.csv",
     index=False
 )
 features = feature_metadata
@@ -1738,3 +1759,313 @@ plt.show()
 
 print("Figure saved:", figure_path)
 
+
+# ============================================================
+# CELL 31A (moved here from script 04 - it evaluates extreme
+# flood detection on the MAIN test set using the corrected
+# thresholds produced above, so it belongs with the rest of
+# the calibration/threshold-analysis content in this script,
+# not with the spatial-transfer data preparation in script 04)
+# CORRECTED EXTREME FLOOD EVENT DETECTION ANALYSIS
+# ============================================================
+
+import joblib
+
+print("="*70)
+print("CORRECTED EXTREME FLOOD EVENT ANALYSIS STARTED")
+print("="*70)
+
+
+
+# ----------------------------------------------------------------------
+# Paths
+# ----------------------------------------------------------------------
+
+base="./flood_project_workspace/Results"
+
+
+test_path = (
+    f"{base}/ML_Training_Input/Temporal_Test.csv"
+)
+
+
+model_path = (
+    f"{base}/ML_Models/Optuna_Optimization"
+)
+
+
+threshold_path = (
+    './flood_project_workspace/Results/Threshold_Correction/Corrected_Threshold_Results.csv'
+)
+
+
+output_path = (
+    f"{base}/Extreme_Event_Analysis/"
+    "Corrected"
+)
+
+
+os.makedirs(
+    output_path,
+    exist_ok=True
+)
+
+
+
+# ----------------------------------------------------------------------
+# Load data
+# ----------------------------------------------------------------------
+
+test=pd.read_csv(
+    test_path
+)
+
+
+features=[
+    c for c in test.columns
+    if c not in
+    [
+        "Flood_Event",
+        "Date",
+        "gauge_id","Q"
+    ]
+]
+#print(pd.read_csv('./flood_project_workspace/Results/ML_Training_Input/X_test_scaled.csv'))
+
+scaler=joblib.load("./flood_project_workspace/Results/ML_Training_Input/StandardScaler.pkl")
+
+#X= scaler().transform(test[features])
+X = pd.read_csv('./flood_project_workspace/Results/ML_Training_Input/X_test_scaled.csv')
+
+y=pd.read_csv('./flood_project_workspace/Results/ML_Training_Input/y_test.csv')
+
+
+
+print("Total test samples:")
+print(test.shape)
+
+
+
+# ----------------------------------------------------------------------
+# Define true extreme floods
+# ----------------------------------------------------------------------
+
+flood_only=test[
+    test["Flood_Event"]==1
+].copy()
+
+
+
+q90=flood_only["Q"].quantile(
+    0.90
+)
+
+
+
+extreme_events=flood_only[
+    flood_only["Q"]>=q90
+].copy()
+
+
+
+X_extreme=extreme_events[features]
+
+y_extreme=extreme_events["Flood_Event"]
+
+
+
+print("-"*70)
+
+print("Flood events:")
+print(len(flood_only))
+
+
+print("Extreme flood threshold Q90:")
+print(q90)
+
+
+print("Extreme flood events:")
+print(len(extreme_events))
+
+
+
+# ----------------------------------------------------------------------
+# Load thresholds
+# ----------------------------------------------------------------------
+
+thresholds=pd.read_csv(
+    threshold_path
+)
+
+
+
+models_extreme={
+
+"Optimized_XGBoost":
+joblib.load(
+    f"{model_path}/Best_XGBoost.pkl"
+),
+
+
+"Optimized_CatBoost":
+joblib.load(
+    f"{model_path}/Best_CatBoost.pkl"
+)
+
+}
+
+
+
+results=[]
+
+
+
+# ----------------------------------------------------------------------
+# Evaluate models
+# ----------------------------------------------------------------------
+
+for name,model in models_extreme.items():
+
+
+    print("-"*60)
+    print(name)
+
+
+    threshold=float(
+        thresholds[
+            thresholds["Model"]==name
+        ]
+        ["Validation_Optimal_Threshold"]
+        .values[0]
+    )
+
+
+    prob=model.predict_proba(
+        X_extreme
+    )[:,1]
+
+
+    pred=(prob>=threshold).astype(int)
+
+
+
+    detected=pred.sum()
+
+    missed=len(pred)-detected
+
+
+
+    detection_rate=(
+        detected /
+        len(pred)
+    )
+
+
+
+    results.append({
+
+        "Model":name,
+
+        "Extreme_Flood_Count":
+        len(pred),
+
+        "Detected_Extreme_Floods":
+        detected,
+
+        "Missed_Extreme_Floods":
+        missed,
+
+        "Detection_Rate":
+        detection_rate,
+
+        "Threshold":
+        threshold
+
+    })
+
+
+
+# ----------------------------------------------------------------------
+# Save results
+# ----------------------------------------------------------------------
+
+results_df=pd.DataFrame(results)
+
+
+
+results_df.to_csv(
+    f"{output_path}/Corrected_Extreme_Flood_Detection.csv",
+    index=False
+)
+
+
+
+print("="*70)
+print("CORRECTED EXTREME FLOOD RESULTS")
+print("="*70)
+
+print(results_df)
+
+
+
+# ----------------------------------------------------------------------
+# Plot
+# ----------------------------------------------------------------------
+
+plt.figure(
+    figsize=(7,5)
+)
+
+
+plt.bar(
+    results_df["Model"],
+    results_df["Detection_Rate"]
+)
+
+
+plt.ylabel(
+    "Extreme Flood Detection Rate"
+)
+
+
+plt.title(
+    "Detection Capability for Extreme Flood Events"
+)
+
+
+plt.xticks(
+    rotation=20
+)
+
+
+plt.ylim(
+    0,
+    1
+)
+
+
+plt.tight_layout()
+
+
+plt.savefig(
+    f"{output_path}/Corrected_Extreme_Flood_Detection.png",
+    dpi=300
+)
+
+
+plt.close()
+
+
+
+print("="*70)
+print("FILES SAVED")
+print("="*70)
+
+print(
+    os.listdir(output_path)
+)
+
+
+print("="*70)
+print("CELL 31A COMPLETED SUCCESSFULLY")
+print("="*70)
