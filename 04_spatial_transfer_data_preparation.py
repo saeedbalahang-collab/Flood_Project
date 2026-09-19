@@ -1197,9 +1197,7 @@ y_transfer = transfer_final[
 # NO FIT !!!
 # ------------------------------------------------------------
 
-X_train_scaled = scaler.fit_transform(
-    X_train
-)
+
 X_transfer_scaled = scaler.transform(
     X_transfer
 )
