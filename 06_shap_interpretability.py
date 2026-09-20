@@ -466,13 +466,13 @@ print(perf_avg)
 # define groups
 
 successful=perf_avg[
-    perf_avg["F1"]>=0.3
+    perf_avg["Recall"]>=0.3
 ].index
 
 
 
 failed=perf_avg[
-    perf_avg["F1"]<0.3
+    perf_avg["Recall"]<0.3
 ].index
 
 
@@ -819,13 +819,13 @@ print(perf_avg)
 # define groups
 
 successful=perf_avg[
-    perf_avg["F1"]>=0.3
+    perf_avg["Recall"]>=0.3
 ].index
 
 
 
 failed=perf_avg[
-    perf_avg["F1"]<0.3
+    perf_avg["Recall"]<0.3
 ].index
 
 
@@ -1043,4 +1043,3 @@ print("="*80)
 
 print("\nSaved folder:")
 print(OUTPUT_DIR)
-
