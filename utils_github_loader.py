@@ -69,6 +69,25 @@ ZIPPED_MODELS = {
     "Random_Forest.pkl": "Random_Forest.zip",
 }
 
+# GitHub's web upload limits a plain repo file to ~25-100 MB. If even
+# the zipped model is still too large for that, upload it as a GitHub
+# "Release" asset instead (Releases allow files up to 2 GB, no Git LFS
+# needed) and put its direct download URL here. This takes priority
+# over github_raw_url(...) for that exact file name - everything else
+# about ensure_all_trained_models() (including ZIPPED_MODELS above)
+# still applies on top of it.
+# key   = the file name as used in ZIPPED_MODELS / ALL_TRAINED_MODELS
+# value = the full direct-download URL
+# Example, after creating a Release with tag "v1-models" and attaching
+# Random_Forest.zip to it:
+#   MODEL_URL_OVERRIDES = {
+#       "Random_Forest.zip": "https://github.com/saeedbalahang-collab/"
+#                             "Flood_Project/releases/download/"
+#                             "v1-models/Random_Forest.zip",
+#   }
+MODEL_URL_OVERRIDES = {
+}
+
 # All local paths (equivalent to "/content" in the original Colab code)
 # are created inside this folder.
 BASE_DIR = os.path.abspath("./flood_project_workspace")
@@ -90,6 +109,17 @@ def github_raw_url(filename_in_repo_root: str) -> str:
         f"https://raw.githubusercontent.com/"
         f"{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{filename_in_repo_root}"
     )
+
+
+def resolve_url(filename: str) -> str:
+    """
+    Return the URL to download `filename` from: MODEL_URL_OVERRIDES[filename]
+    if that file was uploaded somewhere other than the repo root (e.g. a
+    GitHub Release asset), otherwise the usual github_raw_url(filename).
+    """
+    if filename in MODEL_URL_OVERRIDES:
+        return MODEL_URL_OVERRIDES[filename]
+    return github_raw_url(filename)
 
 
 def blob_url_to_raw(blob_url: str) -> str:
@@ -156,7 +186,7 @@ def ensure_main_raw_data_zip() -> str:
     directly, which STEP 3 relies on).
     """
     dest_zip = os.path.join(BASE_DIR, "RepData.zip")
-    return download_file(github_raw_url(RAW_MAIN_DATA_ZIP), dest_zip)
+    return download_file(resolve_url(RAW_MAIN_DATA_ZIP), dest_zip)
 
 
 def ensure_transfer_raw_dataset() -> str:
@@ -168,13 +198,13 @@ def ensure_transfer_raw_dataset() -> str:
     is needed here).
     """
     dest_zip = os.path.join(BASE_DIR, RAW_TRANSFER_DATA_ZIP)
-    return download_file(github_raw_url(RAW_TRANSFER_DATA_ZIP), dest_zip)
+    return download_file(resolve_url(RAW_TRANSFER_DATA_ZIP), dest_zip)
 
 
 def ensure_scaler(target_path: str = None) -> str:
     if target_path is None:
         target_path = os.path.join(BASE_DIR, "Results", "ML_Training_Input", "StandardScaler.pkl")
-    return download_file(github_raw_url(SCALER_FILE), target_path)
+    return download_file(resolve_url(SCALER_FILE), target_path)
 
 
 def ensure_models(target_dir: str = None):
@@ -190,8 +220,8 @@ def ensure_models(target_dir: str = None):
     xgb_path = os.path.join(target_dir, MODEL_XGBOOST_FILE)
     cat_path = os.path.join(target_dir, MODEL_CATBOOST_FILE)
 
-    download_file(github_raw_url(MODEL_XGBOOST_FILE), xgb_path)
-    download_file(github_raw_url(MODEL_CATBOOST_FILE), cat_path)
+    download_file(resolve_url(MODEL_XGBOOST_FILE), xgb_path)
+    download_file(resolve_url(MODEL_CATBOOST_FILE), cat_path)
 
     return xgb_path, cat_path
 
@@ -226,7 +256,7 @@ def ensure_all_trained_models(base_dir: str = None):
             if filename in ZIPPED_MODELS:
                 zip_name = ZIPPED_MODELS[filename]
                 extract_dir = os.path.join(base_dir, "_downloads", filename.replace(".pkl", ""))
-                download_and_extract_zip(github_raw_url(zip_name), extract_dir)
+                download_and_extract_zip(resolve_url(zip_name), extract_dir)
 
                 pkl_path = None
                 for root, _dirs, files in os.walk(extract_dir):
@@ -244,7 +274,7 @@ def ensure_all_trained_models(base_dir: str = None):
                 shutil.copy(pkl_path, dest)
                 print(f"[OK] Extracted {pkl_path} -> {dest}")
             else:
-                download_file(github_raw_url(filename), dest)
+                download_file(resolve_url(filename), dest)
         except Exception as e:
             print(f"[WARN] Could not download {filename}: {e}. "
                   f"If this file was uploaded under a different name, "
