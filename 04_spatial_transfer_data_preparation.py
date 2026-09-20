@@ -14,6 +14,7 @@ from utils_github_loader import (  # noqa: F401
     ensure_transfer_raw_dataset, display,
 )
 
+
 ensure_models()
 ensure_scaler()
 ensure_transfer_raw_dataset()
@@ -1196,9 +1197,11 @@ y_transfer = transfer_final[
 # Apply existing scaler
 # NO FIT !!!
 # ------------------------------------------------------------
+
 import joblib
 scaler = joblib.load('/content/Flood_Project/StandardScaler.pkl')
-
+X_train= pd.read_csv("/content/Flood_Project/flood_project_workspace/Results/ML_Training_Input/X_train.csv")
+scaler.fit(X_train)
 X_transfer_scaled = scaler.transform(
     X_transfer
 )
