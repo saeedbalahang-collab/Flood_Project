@@ -54,9 +54,19 @@ ALL_TRAINED_MODELS = {
     "Random_Forest.pkl": "Baseline",
     "Gradient_Boosting.pkl": "Baseline",
     "XGBoost_Model.pkl": "Advanced",
+    "LightGBM_Model.pkl": "Advanced",
     "CatBoost_Model.pkl": "Advanced",
     MODEL_XGBOOST_FILE: "Optuna_Optimization",
     MODEL_CATBOOST_FILE: "Optuna_Optimization",
+}
+
+# Some models are too large to upload as a raw .pkl to GitHub and are
+# instead uploaded as a .zip (containing that single .pkl file).
+# key   = the .pkl file name as it appears in ALL_TRAINED_MODELS above
+# value = the .zip file name uploaded at the root of the repository
+# Add an entry here for every model you had to zip before uploading.
+ZIPPED_MODELS = {
+    "Random_Forest.pkl": "Random_Forest.zip",
 }
 
 # All local paths (equivalent to "/content" in the original Colab code)
@@ -195,6 +205,10 @@ def ensure_all_trained_models(base_dir: str = None):
 
     Use this whenever you want to evaluate all models (not just the two
     final ones) without re-running training.
+
+    Models listed in ZIPPED_MODELS are downloaded as a .zip and
+    extracted, since a raw .pkl was too large to upload to GitHub
+    directly.
     """
     if base_dir is None:
         base_dir = BASE_DIR
@@ -203,12 +217,39 @@ def ensure_all_trained_models(base_dir: str = None):
 
     for filename, subfolder in ALL_TRAINED_MODELS.items():
         dest = os.path.join(model_root, subfolder, filename)
+
+        if os.path.exists(dest):
+            print(f"[OK] Already downloaded: {dest}")
+            continue
+
         try:
-            download_file(github_raw_url(filename), dest)
+            if filename in ZIPPED_MODELS:
+                zip_name = ZIPPED_MODELS[filename]
+                extract_dir = os.path.join(base_dir, "_downloads", filename.replace(".pkl", ""))
+                download_and_extract_zip(github_raw_url(zip_name), extract_dir)
+
+                pkl_path = None
+                for root, _dirs, files in os.walk(extract_dir):
+                    for f in files:
+                        if f.lower().endswith(".pkl"):
+                            pkl_path = os.path.join(root, f)
+                            break
+                    if pkl_path:
+                        break
+
+                if pkl_path is None:
+                    raise FileNotFoundError(f"No .pkl file found inside {zip_name}")
+
+                os.makedirs(os.path.dirname(dest), exist_ok=True)
+                shutil.copy(pkl_path, dest)
+                print(f"[OK] Extracted {pkl_path} -> {dest}")
+            else:
+                download_file(github_raw_url(filename), dest)
         except Exception as e:
             print(f"[WARN] Could not download {filename}: {e}. "
                   f"If this file was uploaded under a different name, "
-                  f"update ALL_TRAINED_MODELS at the top of this file.")
+                  f"update ALL_TRAINED_MODELS (and ZIPPED_MODELS, if "
+                  f"applicable) at the top of this file.")
 
 
 def pip_install(*packages):
@@ -233,12 +274,12 @@ def apply_journal_style():
     import matplotlib.pyplot as plt
     plt.rcParams.update({
         "font.size": 14,
-        "axes.titlesize": 16,
+        "axes.titlesize": 17,
         "axes.titleweight": "bold",
-        "axes.labelsize": 12,
-        #"axes.labelweight": "bold",
-        "xtick.labelsize": 12,
-        "ytick.labelsize": 12,
+        "axes.labelsize": 15,
+        "axes.labelweight": "bold",
+        "xtick.labelsize": 13,
+        "ytick.labelsize": 13,
         "legend.fontsize": 13,
         "legend.title_fontsize": 14,
         "figure.dpi": 150,
