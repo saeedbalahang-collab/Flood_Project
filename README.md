@@ -71,25 +71,6 @@ from google.colab import files
 files.download("Results.zip")
 ```
 
-Scripts `01`, `03`, `04`, and `05` typically finish in a couple of minutes each; `06` and parts of `07` take longer because SHAP is computed sample-by-sample over the full evaluation set.
 
-## What ends up where
-
-Every script writes into the same local root, `./flood_project_workspace/` (i.e. `/content/flood_project_workspace/` inside Colab), and everything is nested under `Results/`:
-
-```
-flood_project_workspace/Results/
-├── Data_Quality/, Data_Cleaning/, ML_Preparation/, ML_Features/,
-│   Flood_Threshold_Analysis/, ML_Training_Input/        (01)
-├── ML_Models/Baseline/ · Advanced/ · Optuna_Optimization/  (02)
-├── Model_Evaluation/, Threshold_Correction/,
-│   Extreme_Event_Analysis/                                (03)
-└── Spatial_Transfer/
-    ├── Data_Quality/, Data_Cleaning/, Preparation/, ML_Features/,
-    │   Input/ (+ Gauge_Wise_Evaluation/)                   (04)
-    ├── Environmental_Distance/, PCA_Visualization/,
-    │   Predictions/ (+ SHAP_Analysis/)                     (05, 06)
-    └── Probability_Distribution/, Failure_Analysis_By_Gauge/ (07)
-```
 
 
