@@ -86,6 +86,9 @@ ZIPPED_MODELS = {
 #                             "v1-models/Random_Forest.zip",
 #   }
 MODEL_URL_OVERRIDES = {
+    "Random_Forest.zip": "https://github.com/saeedbalahang-collab/"
+                          "Flood_Project/releases/download/"
+                          "v1-models/Random_Forest.zip",
 }
 
 # All local paths (equivalent to "/content" in the original Colab code)
