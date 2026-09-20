@@ -2278,6 +2278,22 @@ X_test_scaled = pd.DataFrame(
 # ------------------------------------------------------------
 # Save datasets
 # ------------------------------------------------------------
+X_train.to_csv(
+    output_folder+"/X_train.csv",
+    index=False
+)
+
+
+X_valid.to_csv(
+    output_folder+"/X_validation.csv",
+    index=False
+)
+
+
+X_test.to_csv(
+    output_folder+"/X_test.csv",
+    index=False
+)
 
 X_train_scaled.to_csv(
     output_folder+"/X_train_scaled.csv",
