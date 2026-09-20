@@ -1196,7 +1196,8 @@ y_transfer = transfer_final[
 # Apply existing scaler
 # NO FIT !!!
 # ------------------------------------------------------------
-
+import joblib
+scaler = joblib.load('/content/Flood_Project/StandardScaler.pkl')
 
 X_transfer_scaled = scaler.transform(
     X_transfer
