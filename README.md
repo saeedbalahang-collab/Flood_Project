@@ -25,11 +25,10 @@ Flood_Project/
 └── StandardScaler.pkl                    fitted scaler (output of script 01)
 ```
 
-`catchment.py` is a separate, one-time step: it takes the raw CAMELS-US attribute tables and decides which gauge IDs belong to the 40-catchment representative set and which belong to the 7-catchment spatial-transfer set. It doesn't touch the daily forcing/streamflow records themselves and isn't part of the pipeline below — `RepData.zip` and `spatial_transfer_all.zip` (the actual daily records for those selected catchments) are prepared separately and are what scripts `01` and `04` consume.
-
-Everything else — `01` through `07` — is a self-contained pipeline. Each script downloads whatever raw data, scaler, or trained model it needs directly from this repository the first time it runs, so nothing has to be fetched or placed by hand beyond the scripts themselves.
+`catchment.py` is a separate, one-time step: it takes the raw CAMELS-US attribute tables and decides which gauge IDs belong to the 40-catchment representative set and which belong to the 7-catchment spatial-transfer set.
 
 ## Running everything in Colab
+Each script downloads whatever raw data, scaler, or trained model it needs directly from this repository the first time it runs, so nothing has to be fetched or placed by hand beyond the scripts themselves.
 
 **Step 0 — catchment selection (only if you're redoing it).** Open a Colab notebook, paste the full contents of `catchment.py` into a cell, and run it. If you're just re-running the modeling pipeline against the existing 40+7 catchments, skip this — `RepData.zip` and `spatial_transfer_all.zip` are already in the repository.
 
