@@ -385,14 +385,13 @@ print("-"*70)
 # Paths
 # ------------------------------------------------------------
 
-QUALITY_FILE = (
-    "/content/"
-    "All_Gauge_Streamflow_Quality (1).csv"
-)
 
-ATTRIBUTE_FILE = (
-    "/content/Data.csv"
-)
+
+QUALITY_FILE = "https://raw.githubusercontent.com/saeedbalahang-collab/Flood_Project/main/All_Gauge_Streamflow_Quality.csv"
+
+
+ATTRIBUTE_FILE = "https://raw.githubusercontent.com/saeedbalahang-collab/Flood_Project/main/Data.csv"
+
 
 
 OUTPUT_DIR = (
@@ -4603,5 +4602,4 @@ print("--------------------------------")
 display(transfer_basins)
 
 print("Cell 16 completed successfully.")
-
 
