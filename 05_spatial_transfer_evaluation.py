@@ -859,78 +859,6 @@ for f in os.listdir(output_dir):
 
 
 # ==========================================================
-# CELL 4
-# FEATURE DISTRIBUTION VISUALIZATION
-# ==========================================================
-
-import os
-import pandas as pd
-import matplotlib.pyplot as plt
-
-print("="*70)
-print("CELL 4 - FEATURE DISTRIBUTION PLOTS")
-print("="*70)
-
-output_dir="./flood_project_workspace/Results/Spatial_Transfer/Predictions"
-
-train=pd.read_csv(
-"./flood_project_workspace/Results/ML_Training_Input/Temporal_Train.csv"
-)
-
-transfer=pd.read_csv(
-"./flood_project_workspace/Results/Spatial_Transfer/Input/Spatial_Transfer_Final_Dataset.csv"
-)
-
-shift=pd.read_csv(
-f"{output_dir}/Feature_Distribution_Shift.csv"
-)
-
-top_features=shift.head(10)["Feature"].tolist()
-
-for feature in top_features:
-
-    plt.figure(figsize=(6,4))
-
-    plt.hist(
-        train[feature],
-        bins=40,
-        density=True,
-        alpha=0.5,
-        label="Train"
-    )
-
-    plt.hist(
-        transfer[feature],
-        bins=40,
-        density=True,
-        alpha=0.5,
-        label="Transfer"
-    )
-
-    plt.xlabel(feature)
-    plt.ylabel("Density")
-
-    plt.title(feature)
-
-    plt.legend()
-
-    plt.tight_layout()
-
-    plt.savefig(
-        f"{output_dir}/{feature}_distribution.png",
-        dpi=300
-    )
-
-    plt.close()
-
-print("="*70)
-print("Top shifted features:")
-print(top_features)
-
-print("="*70)
-print("Distribution plots saved.")
-
-# ==========================================================
 # CELL 5
 # CATCHMENT-LEVEL PCA VISUALIZATION
 # TRAIN vs TRANSFER ENVIRONMENTAL SPACE
@@ -1205,6 +1133,3 @@ print("="*70)
 print("Saved:")
 print("Catchment_Level_PCA_Coordinates.csv")
 print("Catchment_Level_PCA_Train_vs_Transfer.png")
-
-
-
