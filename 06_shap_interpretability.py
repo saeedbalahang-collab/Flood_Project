@@ -466,7 +466,7 @@ print(perf_avg)
 # define groups
 
 successful=perf_avg[
-    perf_avg["Recall"]>=0.3
+    perf_avg["Recall"]>0.3
 ].index
 
 
